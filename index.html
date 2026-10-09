@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src blob:; connect-src https://*.supabase.co; base-uri 'none'; form-action 'none'">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Vidéo partagée</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Vidéo partagée</h1>
+    <p class="lead">
+      Une personne vous a confié l'original d'une vidéo filmée avec Manif'.
+      Elle est déchiffrée ici, dans votre navigateur : la clé est dans le lien,
+      après le « # », et n'est jamais envoyée au serveur.
+    </p>
+
+    <section id="status" class="card" aria-live="polite">Vérification du lien…</section>
+
+    <section id="details" class="card" hidden>
+      <dl>
+        <dt>Filmée le</dt><dd id="captured"></dd>
+        <dt>Provenance</dt><dd id="source"></dd>
+        <dt>Segments</dt><dd id="count"></dd>
+        <dt>Lien valable jusqu'au</dt><dd id="expires"></dd>
+      </dl>
+      <button id="open" type="button">Déchiffrer et lire</button>
+      <progress id="progress" max="1" value="0" hidden></progress>
+    </section>
+
+    <section id="player" class="card" hidden>
+      <video id="video" controls playsinline></video>
+      <p id="segment-label" class="muted"></p>
+      <h2>Intégrité</h2>
+      <p id="integrity"></p>
+      <p class="muted">Empreinte de la vidéo (chaîne SHA-256 des segments) :</p>
+      <code id="chain"></code>
+      <h2>Téléchargement</h2>
+      <ul id="downloads"></ul>
+    </section>
+
+    <footer class="muted">
+      Page sans traceur ni cookie. Code source ouvert.
+    </footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
