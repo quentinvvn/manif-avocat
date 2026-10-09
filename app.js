@@ -2,7 +2,7 @@
 // les vérifie et les déchiffre dans le navigateur.
 import { FUNCTION_URL } from './config.js';
 import {
-  parseFragment, unwrapContentKey, decryptSegment, sha256, chainLink, bytesToHex,
+  parseFragment, unwrapContentKey, decryptSegment, sha256, chainLink, bytesToHex, hexToBytes,
   LinkError, DecryptError,
 } from './lib.js';
 
@@ -99,6 +99,18 @@ function show(share, parts, intact, head) {
     : 'Attention : au moins un segment ne correspond pas à son empreinte.';
   integrity.className = intact ? 'good' : 'bad';
   $('chain').textContent = bytesToHex(head);
+  const proofText = $('proof');
+  const proof = share.proof;
+  if (!proof) {
+    proofText.textContent = 'Pas encore d\'horodatage pour cette vidéo.';
+  } else if (proof.sha256_chain === bytesToHex(head)) {
+    proofText.textContent = `Horodatée le ${dateFormat.format(new Date(proof.stamped_at))} : `
+      + 'l\'empreinte calculée ici est identique à l\'empreinte horodatée.';
+    proofText.className = 'good';
+  } else {
+    proofText.textContent = 'Attention : l\'empreinte calculée ne correspond pas à l\'empreinte horodatée.';
+    proofText.className = 'bad';
+  }
 
   const downloads = $('downloads');
   const video = $('video');
@@ -136,11 +148,27 @@ function show(share, parts, intact, head) {
     source: share.source,
     segments: share.segments.map((s) => ({ index: s.index, sha256: s.sha256 })),
     chain_sha256: bytesToHex(head),
+    stamped_chain_sha256: proof?.sha256_chain ?? null,
+    stamped_at: proof?.stamped_at ?? null,
+    chunk_size: proof?.chunk_size ?? null,
     verified_at: new Date().toISOString(),
   };
+  if (proof?.tsa_token) {
+    downloads.append(item(blobUrl(proof.tsa_token, 'application/timestamp-reply'),
+      `manif-${stamp}-freetsa.tsr`, 'Jeton d\'horodatage FreeTSA (RFC 3161)'));
+  }
+  if (proof?.ots_proof) {
+    downloads.append(item(blobUrl(proof.ots_proof, 'application/octet-stream'),
+      `manif-${stamp}.ots`, 'Preuve OpenTimestamps (ancrage Bitcoin)'));
+  }
+
   const manifestUrl = URL.createObjectURL(
     new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' }));
   downloads.append(item(manifestUrl, `manif-${stamp}-empreintes.json`, 'Empreintes (pour vérification)'));
+}
+
+function blobUrl(hex, type) {
+  return URL.createObjectURL(new Blob([hexToBytes(hex)], { type }));
 }
 
 function item(url, filename, text) {
